@@ -8,7 +8,12 @@ import top from "@/assets/shoe-top.jpg";
 import back from "@/assets/shoe-back.jpg";
 import black from "@/assets/shoe-black.jpg";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
-import { useCart } from "@/lib/store";
+import { useCart, money } from "@/lib/store";
+import { useProductDetail } from "@/hooks/useProduct";
+import { useProductComments } from "@/hooks/useComments";
+import { useProductRatingSummary } from "@/hooks/useRatings";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
 const images = [side, top, back, side];
 const sizes = ["40.5", "41", "42", "43", "43.5", "44", "44.5", "45", "46"];
@@ -41,6 +46,14 @@ function Stars({ n, size = 14 }: { n: number; size?: number }) {
 }
 
 export default function ProductPage() {
+    const params = useParams<{ ref: string }>();
+    const stockId = params?.ref || "zig-kinetica-3";
+    const productQuery = useProductDetail(stockId);
+    const apiProduct = productQuery.data;
+    const productName = apiProduct?.name || "Shoes Reebok Zig Kinetica 3";
+    const productBrand = apiProduct?.brand || "Reebok";
+    const commentsQuery = useProductComments({ stockId, page: 1, limit: 10 });
+    const ratingQuery = useProductRatingSummary(stockId);
     const [img, setImg] = useState(0);
     const [color, setColor] = useState(0);
     const [size, setSize] = useState("41");
@@ -48,6 +61,15 @@ export default function ProductPage() {
     const [fav, setFav] = useState(false);
     const { add } = useCart();
     const main = color === 0 ? images[img]! : colors[color]!.img;
+
+    const currentPrice = apiProduct?.prices?.find((p) => p.priceType === "CURRENT")?.price;
+    const currentPriceID = apiProduct?.prices?.find((p) => p.priceType === "CURRENT")?.id;
+
+    const promotionalPrice = apiProduct?.prices?.find((p) => p.priceType === "PROMOTIONAL")?.price;
+    const promotionalPriceID = apiProduct?.prices?.find((p) => p.priceType === "PROMOTIONAL")?.id;
+
+    const percent = promotionalPrice && currentPrice ? ((currentPrice - promotionalPrice) / currentPrice) * 100 : 0;
+    const discountLabel = percent > 0 ? `${percent.toFixed(0)}% OFF` : null;
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
@@ -62,10 +84,10 @@ export default function ProductPage() {
                 <section className="grid gap-12 md:grid-cols-2">
                     <div>
                         <div className="aspect-[4/3] overflow-hidden rounded-lg bg-surface relative">
-                            <Image src={main} alt="Reebok Zig Kinetica 3" width={1024} height={1024} className="h-full w-full object-cover" priority />
+                            <Image src={apiProduct?.image || "https://media.wallmantra.com/product/original/product_placeholder.webp"} alt="Reebok Zig Kinetica 3" width={1024} height={1024} className="h-full w-full object-cover" priority />
                         </div>
                         <div className="mt-3 grid grid-cols-5 gap-2">
-                            {images.map((src, i) => (
+                            {apiProduct?.image_sides?.map((src, i) => (
                                 <button key={i} onClick={() => { setImg(i); setColor(0); }}
                                     className={`aspect-square overflow-hidden rounded-md border-2 bg-surface relative ${img === i && color === 0 ? "border-foreground" : "border-transparent"}`}>
                                     <Image src={src} alt="" width={200} height={200} className="h-full w-full object-cover" />
@@ -77,26 +99,51 @@ export default function ProductPage() {
 
                     <div>
                         <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-2"><span className="h-6 w-6 rounded-full bg-primary" />Reebok</span>
+                            <span className="flex items-center gap-2"><span className="h-6 w-6 rounded-full bg-primary" />{productBrand}</span>
                             <span className="text-xs text-muted-foreground">HR1325ROG-48</span>
                         </div>
-                        <h1 className="mt-4 text-2xl font-semibold">Shoes Reebok Zig Kinetica 3</h1>
-                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><Stars n={4} /> 42 reviews</div>
-                        <p className="mt-6 text-4xl font-semibold">$199.00</p>
+                        <h1 className="mt-4 text-2xl font-semibold">{productName}</h1>
+                        <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"><Stars n={4} /> 42 demo reviews</div>
+                        <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">
+                            {commentsQuery.isPending || ratingQuery.isPending
+                                ? "Loading reviews from Hellena…"
+                                : commentsQuery.isError || ratingQuery.isError
+                                    ? "Hellena reviews unavailable — showing sample reviews."
+                                    : "Hellena review data loaded; sample reviews are shown in this demo."}
+                        </p>
+                        <p className="mt-6 text-4xl font-semibold">{money(promotionalPrice ?? currentPrice ?? 0)}</p>
+                        <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">
+                            {productQuery.isPending ? "Loading product from Hellena…" : productQuery.isError ? "Hellena product unavailable — showing demo details." : apiProduct ? "Product loaded from Hellena." : "Product not found in Hellena — showing demo details."}
+                        </p>
 
-                        <p className="mt-8 text-sm">Color <span className="ml-2 text-muted-foreground">· {colors[color]!.name}</span></p>
+                        <p className="mt-8 text-sm">Variants <span className="ml-2 text-muted-foreground">· {colors[color]!.name}</span></p>
                         <div className="mt-3 flex gap-2">
-                            {colors.map((c, i) => (
-                                <button key={c.name} onClick={() => setColor(i)}
+                            {apiProduct?.variants?.map((c, i) => (
+                                <Link key={c.id} href={`/product/${c.variantProduct?.id}`}
                                     className={`h-14 w-14 overflow-hidden rounded-md border-2 bg-surface relative ${color === i ? "border-foreground" : "border-transparent"}`}>
-                                    <Image src={c.img} alt={c.name} width={100} height={100} className="h-full w-full object-cover" />
-                                </button>
+                                    <Image
+                                        src={c.variantProduct?.image || "https://media.wallmantra.com/product/original/product_placeholder.webp"}
+                                        alt={c.variantProduct?.name || "product"}
+                                        width={100}
+                                        height={100}
+                                        className="h-full w-full object-cover" />
+                                </Link>
                             ))}
                         </div>
 
+                        <p className="mt-8 text-sm">Color <span className="ml-2 text-muted-foreground">· EU Men</span></p>
+                        <div className="mt-3 grid grid-cols-6 gap-2">
+                            {apiProduct?.color!.map((s) => (
+                                <button
+                                    key={s} onClick={() => setSize(s)}
+                                    className={`rounded-md h-8 w-8 bg-white border-2 transition ${size === s ? "border-primary bg-primary text-primary-foreground" : "hover:border-foreground"}`} />
+                            ))}
+                        </div>
+
+
                         <p className="mt-8 text-sm">Size <span className="ml-2 text-muted-foreground">· EU Men</span></p>
                         <div className="mt-3 grid grid-cols-6 gap-2">
-                            {sizes.map((s) => (
+                            {apiProduct?.size!.map((s) => (
                                 <button key={s} onClick={() => setSize(s)}
                                     className={`rounded-md border py-2 text-sm transition ${size === s ? "border-primary bg-primary text-primary-foreground" : "hover:border-foreground"}`}>{s}</button>
                             ))}

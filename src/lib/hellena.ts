@@ -1,4 +1,4 @@
-"use server"
+import "server-only";
 
 import { HellenaClient } from "@hellena-sdk/hellena";
 

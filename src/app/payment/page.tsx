@@ -7,6 +7,7 @@ import { useCart } from "@/lib/store";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { Steps } from "../checkout/page";
 import { Summary } from "../cart/page";
+import { useAvailablePaymentMethods } from "@/hooks/usePayments";
 
 const field = "w-full rounded-md border bg-background px-3 py-2.5 text-sm outline-none focus:border-foreground";
 
@@ -14,6 +15,7 @@ export default function PaymentPage() {
     const [method, setMethod] = useState("card");
     const [done, setDone] = useState(false);
     const { clear } = useCart();
+    const paymentMethodsQuery = useAvailablePaymentMethods();
 
     if (done) {
         return (
@@ -49,6 +51,13 @@ export default function PaymentPage() {
             <main className="mx-auto max-w-6xl px-6 pb-20 pt-8">
                 <h1 className="font-display text-5xl">Payment</h1>
                 <Steps at={2} />
+                <p aria-live="polite" className="mt-3 text-xs text-muted-foreground">
+                    {paymentMethodsQuery.isPending
+                        ? "Checking payment methods with Hellena…"
+                        : paymentMethodsQuery.isError
+                            ? "Hellena payment methods unavailable. The options below are for demonstration only."
+                            : "Hellena payment methods loaded. The options below remain demonstrative and do not process a real payment."}
+                </p>
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();

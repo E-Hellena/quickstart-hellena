@@ -7,10 +7,26 @@ import black from "@/assets/shoe-black.jpg";
 import top from "@/assets/shoe-top.jpg";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import Link from "next/link";
-
+import { useProducts } from "@/hooks/useProduct";
+import Image from "next/image";
 
 export default function Page() {
+  const { data: productsQuery, isLoading, isError } = useProducts({ page: 1, limit: 20 });
+  const apiProducts = productsQuery?.data ?? [];
+  const homeProducts = apiProducts.length > 0
+    ? apiProducts.map((p, index) => ({
+      id: p.slug || p.id,
+      name: p.name,
+      slug: p.slug,
+      brand: p.brand || "Brand",
+      price: p.prices?.[0]?.price ?? 0,
+      old: undefined as number | undefined,
+      img: p.image || products[index % products.length].img,
+    }))
+    : products;
+
   const marquee = Array(10).fill("New season ✦ Sale up to 25% ✦");
+
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <SiteHeader />
@@ -43,10 +59,28 @@ export default function Page() {
 
         <section className="mx-auto mt-24 max-w-6xl px-6">
           <h2 className="text-center font-display text-5xl">New Arrivals</h2>
+          <p aria-live="polite" className="mt-2 text-center text-xs text-muted-foreground">
+            {isLoading
+              ? "Loading products from Hellena…"
+              : isError
+                ? "Hellena is unavailable; showing demo products."
+                : apiProducts.length > 0
+                  ? "Products loaded from Hellena."
+                  : "No products returned by Hellena; showing demo products."}
+          </p>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {products.slice(0, 4).map((p) => (
-              <Link key={p.id} href="/product" className="group rounded-lg bg-surface p-4">
-                <img src={p.img} alt={p.name} loading="lazy" className="aspect-square w-full rounded-md object-cover transition group-hover:scale-105" />
+            {homeProducts.map((p) => (
+              <Link key={p.id} href={`/product/${p.id}`} className="group rounded-lg bg-surface p-4">
+                <div className="aspect-square w-full overflow-hidden rounded-md bg-background flex items-center justify-center">
+                  <Image
+                    src={p.img}
+                    alt={p.name}
+                    loading="lazy"
+                    width={500}
+                    height={500}
+                    className="h-full w-full object-contain transition group-hover:scale-105"
+                  />
+                </div>
                 <p className="mt-3 text-xs text-muted-foreground">{p.brand}</p>
                 <p className="text-sm">{p.name}</p>
                 <p className="mt-1 font-semibold">{money(p.price)}</p>
@@ -54,20 +88,20 @@ export default function Page() {
             ))}
           </div>
         </section>
-
+        {/* 
         <section className="mx-auto mt-24 max-w-6xl px-6 text-center">
           <p className="mx-auto w-fit rounded-full border px-6 font-display text-3xl">03</p>
           <h2 className="mt-2 font-display text-5xl">Just For <span className="text-sale">You</span></h2>
           <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {products.filter((p) => p.old).concat(products.slice(0, 1)).map((p) => (
-              <Link key={p.id} href="/product" className="rounded-lg bg-surface p-4 text-left">
+            {homeProducts.filter((p) => p.old).concat(homeProducts.slice(0, 1)).map((p) => (
+              <Link key={p.id} href={`/product/${p.id}`} className="rounded-lg bg-surface p-4 text-left">
                 <img src={p.img} alt={p.name} loading="lazy" className="aspect-square w-full rounded-md object-cover" />
                 <p className="mt-3 text-sm">{p.brand} {p.name}</p>
                 <p className="mt-1 font-semibold">{money(p.price)} {p.old && <span className="ml-1 text-xs font-normal text-muted-foreground line-through">{money(p.old)}</span>}</p>
               </Link>
             ))}
           </div>
-        </section>
+        </section> */}
 
         <section className="mx-auto my-20 grid max-w-6xl grid-cols-2 border px-0 md:grid-cols-4">
           {[[Truck, "Free delivery", "On orders over $30"], [RotateCcw, "Free returns", "Within 30 days"], [Globe, "International shipping", "To 40+ countries"], [MessageCircle, "Any questions?", "We reply in 24h"]].map(([I, t, s], i) => {

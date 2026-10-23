@@ -5,9 +5,11 @@ import { Search, ShoppingBag, Heart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function SiteHeader() {
     const { count } = useCart();
+    const isMobile = useIsMobile();
     const [q, setQ] = useState("");
     const router = useRouter();
 
@@ -16,7 +18,7 @@ export function SiteHeader() {
             <div className="mx-auto max-w-6xl px-6">
                 <div className="flex items-center justify-between py-5">
                     <Link href="/" className="text-xl font-bold tracking-tight">BR.<span className="text-rating">F</span></Link>
-                    <form onSubmit={(e) => { e.preventDefault(); router.push(`/search?q=${q}`); }}
+                    <form onSubmit={(e) => { e.preventDefault(); const query = q.trim(); router.push(query ? `/search?q=${encodeURIComponent(query)}` : "/search"); }}
                         className="hidden w-80 items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground md:flex">
                         <Search className="h-4 w-4" />
                         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search" className="w-full bg-transparent outline-none" />
@@ -30,7 +32,7 @@ export function SiteHeader() {
                         <div className="h-9 w-9 rounded-full bg-promo" />
                     </div>
                 </div>
-                <nav className="flex gap-7 overflow-x-auto border-b pb-4 text-sm">
+                <nav aria-label={isMobile ? "Main navigation on mobile" : "Main navigation"} className="flex gap-7 overflow-x-auto border-b pb-4 text-sm">
                     {["Running", "Lifestyle", "Tennis"].map((l) => (
                         <Link key={l} href={`/search?category=${l}`} className="hover:text-muted-foreground">{l}</Link>
                     ))}

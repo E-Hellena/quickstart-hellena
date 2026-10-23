@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { products, money } from "@/lib/store";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
-
-const brands = [...new Set(products.map((p) => p.brand))];
-const cats = [...new Set(products.map((p) => p.category))];
-const colors = [...new Set(products.map((p) => p.color))];
+import { useProducts, useSearchProducts } from "@/hooks/useProduct";
 
 function Check({ label, on, toggle }: { label: string; on: boolean; toggle: () => void }) {
     return (
@@ -29,6 +26,27 @@ export default function SearchPage() {
     const q = searchParams.get("q") || "";
     const category = searchParams.get("category") || "";
     const sale = searchParams.get("sale") === "true";
+
+    // Usa a pesquisa da Hellena quando existe texto e o catálogo quando a pesquisa está vazia.
+    const productsQuery = useProducts({ page: 1, limit: 20 });
+    const searchQuery = useSearchProducts({ ref: q, page: 1, limit: 20 });
+    const hellenaQuery = q.trim() ? searchQuery : productsQuery;
+    const apiProducts = hellenaQuery.data?.data ?? [];
+    const catalog = apiProducts.length > 0
+        ? apiProducts.map((p, index) => ({
+            id: p.slug || p.id,
+            name: p.name,
+            brand: p.brand || "Brand",
+            price: Number(p.prices?.[0]?.price ?? 0),
+            old: undefined as number | undefined,
+            img: p.image || products[index % products.length].img,
+            category: Array.isArray(p.category) ? (p.category[0] || "Shoes") : (p.category || "Shoes"),
+            color: Array.isArray(p.color) ? (p.color[0] || "Other") : (p.color || "Other"),
+        }))
+        : products;
+    const brands = [...new Set(catalog.map((p) => p.brand))];
+    const cats = [...new Set(catalog.map((p) => p.category))];
+    const colors = [...new Set(catalog.map((p) => p.color))];
 
     // Estados locais de filtros
     const [selBrands, setBrands] = useState<string[]>([]);
@@ -55,8 +73,8 @@ export default function SearchPage() {
         set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
     };
 
-    const list = useMemo(() => {
-        let r = products.filter((p) =>
+    const list = (() => {
+        let r = catalog.filter((p) =>
             (!q || `${p.brand} ${p.name}`.toLowerCase().includes(q.toLowerCase())) &&
             (!category || p.category === category) &&
             (!sale || p.old) &&
@@ -68,7 +86,7 @@ export default function SearchPage() {
         if (sort === "low") r = [...r].sort((a, b) => a.price - b.price);
         if (sort === "high") r = [...r].sort((a, b) => b.price - a.price);
         return r;
-    }, [q, category, sale, selBrands, selColors, max, sort]);
+    })();
 
     const reset = () => {
         setBrands([]);
@@ -87,6 +105,15 @@ export default function SearchPage() {
                             {q ? `"${q}"` : sale ? "Sale" : category || "All shoes"}
                         </h1>
                         <p className="mt-2 text-xs text-muted-foreground">{list.length} results</p>
+                        <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">
+                            {hellenaQuery.isPending
+                                ? "Checking the Hellena catalogue…"
+                                : hellenaQuery.isError
+                                    ? "Hellena API unavailable — showing demo products."
+                                    : apiProducts.length > 0
+                                    ? "Products loaded from Hellena."
+                                    : "No products returned by Hellena — showing demo products."}
+                        </p>
                     </div>
                     <input
                         value={q}
