@@ -83,7 +83,7 @@ export default function PaymentPage() {
                         {method === "mobile" && <input required placeholder="Phone number" className={field} />}
                         {method === "bank" && (
                             <p className="rounded-md bg-surface p-4 text-sm text-muted-foreground">
-                                You'll receive our bank details by email after placing the order.
+                                You&apos;ll receive our bank details by email after placing the order.
                             </p>
                         )}
                         <p className="flex items-center gap-2 text-xs text-muted-foreground">

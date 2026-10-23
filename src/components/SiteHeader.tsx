@@ -52,7 +52,7 @@ export function SiteFooter() {
                     <Link href="/cart" className="block">Cart</Link>
                     <Link href={`/search?sale=true`} className="block">Sale</Link>
                 </div>
-                <p className="font-display text-3xl">Let's walk together.</p>
+                <p className="font-display text-3xl">Let&apos;s walk together.</p>
             </div>
             <p className="border-t border-primary-foreground/20 py-4 text-center text-[10px] opacity-60">© 2026 BR.F — All rights reserved</p>
         </footer>
