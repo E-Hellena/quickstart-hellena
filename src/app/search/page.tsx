@@ -96,183 +96,179 @@ export default function SearchPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background font-sans text-foreground">
-            <SiteHeader />
-            <main className="mx-auto max-w-6xl px-6 pb-20 pt-8">
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                        <h1 className="font-display text-5xl">
-                            {q ? `"${q}"` : sale ? "Sale" : category || "All shoes"}
-                        </h1>
-                        <p className="mt-2 text-xs text-muted-foreground">{list.length} results</p>
-                        <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">
-                            {hellenaQuery.isPending
-                                ? "Checking the Hellena catalogue…"
-                                : hellenaQuery.isError
-                                    ? "Hellena API unavailable — showing demo products."
-                                    : apiProducts.length > 0
+        <main className="mx-auto max-w-6xl px-6 pb-20 pt-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <h1 className="font-display text-5xl">
+                        {q ? `"${q}"` : sale ? "Sale" : category || "All shoes"}
+                    </h1>
+                    <p className="mt-2 text-xs text-muted-foreground">{list.length} results</p>
+                    <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">
+                        {hellenaQuery.isPending
+                            ? "Checking the Hellena catalogue…"
+                            : hellenaQuery.isError
+                                ? "Hellena API unavailable — showing demo products."
+                                : apiProducts.length > 0
                                     ? "Products loaded from Hellena."
                                     : "No products returned by Hellena — showing demo products."}
-                        </p>
-                    </div>
-                    <input
-                        value={q}
-                        onChange={(e) => updateQuery({ q: e.target.value })}
-                        placeholder="Search by name or brand"
-                        className="w-72 rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
-                    />
+                    </p>
                 </div>
+                <input
+                    value={q}
+                    onChange={(e) => updateQuery({ q: e.target.value })}
+                    placeholder="Search by name or brand"
+                    className="w-72 rounded-md border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+                />
+            </div>
 
-                <div className="mt-8 grid gap-10 md:grid-cols-[220px_1fr]">
-                    <aside className="space-y-8">
-                        <div className="flex items-center justify-between text-sm font-semibold">
-                            <span className="flex items-center gap-2">
-                                <SlidersHorizontal className="h-4 w-4" /> Filters
-                            </span>
-                            <button onClick={reset} className="text-xs font-normal text-rating hover:underline">
-                                Clear all
-                            </button>
-                        </div>
+            <div className="mt-8 grid gap-10 md:grid-cols-[220px_1fr]">
+                <aside className="space-y-8">
+                    <div className="flex items-center justify-between text-sm font-semibold">
+                        <span className="flex items-center gap-2">
+                            <SlidersHorizontal className="h-4 w-4" /> Filters
+                        </span>
+                        <button onClick={reset} className="text-xs font-normal text-rating hover:underline">
+                            Clear all
+                        </button>
+                    </div>
 
-                        {/* Categoria */}
-                        <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground">Category</p>
-                            {cats.map((c) => (
-                                <Check
-                                    key={c}
-                                    label={c}
-                                    on={category === c}
-                                    toggle={() => updateQuery({ category: category === c ? null : c })}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Marcas */}
-                        <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground">Brand</p>
-                            {brands.map((b) => (
-                                <Check
-                                    key={b}
-                                    label={b}
-                                    on={selBrands.includes(b)}
-                                    toggle={() => tog(selBrands, setBrands, b)}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Cores */}
-                        <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground">Color</p>
-                            {colors.map((c) => (
-                                <Check
-                                    key={c}
-                                    label={c}
-                                    on={selColors.includes(c)}
-                                    toggle={() => tog(selColors, setColors, c)}
-                                />
-                            ))}
-                        </div>
-
-                        {/* Preço Máximo */}
-                        <div className="space-y-2">
-                            <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                                Max price · {money(max)}
-                            </p>
-                            <input
-                                type="range"
-                                min={50}
-                                max={250}
-                                step={5}
-                                value={max}
-                                onChange={(e) => setMax(+e.target.value)}
-                                className="w-full accent-primary"
+                    {/* Categoria */}
+                    <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">Category</p>
+                        {cats.map((c) => (
+                            <Check
+                                key={c}
+                                label={c}
+                                on={category === c}
+                                toggle={() => updateQuery({ category: category === c ? null : c })}
                             />
-                        </div>
+                        ))}
+                    </div>
 
-                        {/* Promoções */}
-                        <Check
-                            label="On sale only"
-                            on={sale}
-                            toggle={() => updateQuery({ sale: !sale })}
+                    {/* Marcas */}
+                    <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">Brand</p>
+                        {brands.map((b) => (
+                            <Check
+                                key={b}
+                                label={b}
+                                on={selBrands.includes(b)}
+                                toggle={() => tog(selBrands, setBrands, b)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Cores */}
+                    <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">Color</p>
+                        {colors.map((c) => (
+                            <Check
+                                key={c}
+                                label={c}
+                                on={selColors.includes(c)}
+                                toggle={() => tog(selColors, setColors, c)}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Preço Máximo */}
+                    <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                            Max price · {money(max)}
+                        </p>
+                        <input
+                            type="range"
+                            min={50}
+                            max={250}
+                            step={5}
+                            value={max}
+                            onChange={(e) => setMax(+e.target.value)}
+                            className="w-full accent-primary"
                         />
-                    </aside>
+                    </div>
 
-                    <div>
-                        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                            {/* Badges dos filtros ativos */}
-                            <div className="flex flex-wrap gap-2">
-                                {selBrands.map((b) => (
-                                    <span key={b} className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
-                                        {b}
-                                        <X className="h-3 w-3 cursor-pointer" onClick={() => tog(selBrands, setBrands, b)} />
-                                    </span>
-                                ))}
-                                {selColors.map((c) => (
-                                    <span key={c} className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
-                                        {c}
-                                        <X className="h-3 w-3 cursor-pointer" onClick={() => tog(selColors, setColors, c)} />
-                                    </span>
-                                ))}
-                                {category && (
-                                    <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
-                                        {category}
-                                        <X className="h-3 w-3 cursor-pointer" onClick={() => updateQuery({ category: null })} />
-                                    </span>
-                                )}
-                            </div>
+                    {/* Promoções */}
+                    <Check
+                        label="On sale only"
+                        on={sale}
+                        toggle={() => updateQuery({ sale: !sale })}
+                    />
+                </aside>
 
-                            {/* Ordenação */}
-                            <select
-                                value={sort}
-                                onChange={(e) => setSort(e.target.value)}
-                                className="rounded-md border bg-background px-3 py-2 text-xs"
-                            >
-                                <option value="featured">Featured</option>
-                                <option value="low">Price: low to high</option>
-                                <option value="high">Price: high to low</option>
-                            </select>
+                <div>
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                        {/* Badges dos filtros ativos */}
+                        <div className="flex flex-wrap gap-2">
+                            {selBrands.map((b) => (
+                                <span key={b} className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
+                                    {b}
+                                    <X className="h-3 w-3 cursor-pointer" onClick={() => tog(selBrands, setBrands, b)} />
+                                </span>
+                            ))}
+                            {selColors.map((c) => (
+                                <span key={c} className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
+                                    {c}
+                                    <X className="h-3 w-3 cursor-pointer" onClick={() => tog(selColors, setColors, c)} />
+                                </span>
+                            ))}
+                            {category && (
+                                <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">
+                                    {category}
+                                    <X className="h-3 w-3 cursor-pointer" onClick={() => updateQuery({ category: null })} />
+                                </span>
+                            )}
                         </div>
 
-                        {/* Lista de Produtos */}
-                        {list.length === 0 ? (
-                            <p className="rounded-lg bg-surface p-10 text-center text-sm text-muted-foreground">
-                                No shoes match these filters.
-                            </p>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                                {list.map((p) => (
-                                    <Link key={p.id} href={`/product/${p.id}`} className="relative rounded-lg bg-surface p-4">
+                        {/* Ordenação */}
+                        <select
+                            value={sort}
+                            onChange={(e) => setSort(e.target.value)}
+                            className="rounded-md border bg-background px-3 py-2 text-xs"
+                        >
+                            <option value="featured">Featured</option>
+                            <option value="low">Price: low to high</option>
+                            <option value="high">Price: high to low</option>
+                        </select>
+                    </div>
+
+                    {/* Lista de Produtos */}
+                    {list.length === 0 ? (
+                        <p className="rounded-lg bg-surface p-10 text-center text-sm text-muted-foreground">
+                            No shoes match these filters.
+                        </p>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+                            {list.map((p) => (
+                                <Link key={p.id} href={`/product/${p.id}`} className="relative rounded-lg bg-surface p-4">
+                                    {p.old && (
+                                        <span className="absolute left-3 top-3 rounded bg-sale px-2 py-0.5 text-[10px] text-primary-foreground">
+                                            Sale
+                                        </span>
+                                    )}
+                                    <img
+                                        src={p.img}
+                                        alt={p.name}
+                                        loading="lazy"
+                                        className="aspect-square w-full rounded-md object-cover"
+                                    />
+                                    <p className="mt-3 text-xs text-muted-foreground">
+                                        {p.brand} · {p.category}
+                                    </p>
+                                    <p className="text-sm font-medium">{p.name}</p>
+                                    <p className="mt-1 font-semibold">
+                                        {money(p.price)}{" "}
                                         {p.old && (
-                                            <span className="absolute left-3 top-3 rounded bg-sale px-2 py-0.5 text-[10px] text-primary-foreground">
-                                                Sale
+                                            <span className="ml-1 text-xs font-normal text-muted-foreground line-through">
+                                                {money(p.old)}
                                             </span>
                                         )}
-                                        <img
-                                            src={p.img}
-                                            alt={p.name}
-                                            loading="lazy"
-                                            className="aspect-square w-full rounded-md object-cover"
-                                        />
-                                        <p className="mt-3 text-xs text-muted-foreground">
-                                            {p.brand} · {p.category}
-                                        </p>
-                                        <p className="text-sm font-medium">{p.name}</p>
-                                        <p className="mt-1 font-semibold">
-                                            {money(p.price)}{" "}
-                                            {p.old && (
-                                                <span className="ml-1 text-xs font-normal text-muted-foreground line-through">
-                                                    {money(p.old)}
-                                                </span>
-                                            )}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            </main>
-            <SiteFooter />
-        </div>
+            </div>
+        </main>
     );
 }

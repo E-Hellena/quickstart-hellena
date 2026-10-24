@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/store";
 import QueryClientProviderMain from "@/providers/QueryClientProvider";
+import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <QueryClientProviderMain>
           <CartProvider>
-            {children}
+            <div className="min-h-screen bg-background font-sans text-foreground">
+              <SiteHeader />
+              {children}
+              <SiteFooter />
+            </div>
           </CartProvider>
         </QueryClientProviderMain>
       </body>
