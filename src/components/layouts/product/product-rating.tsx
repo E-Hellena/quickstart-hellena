@@ -2,7 +2,7 @@
 
 import { useProductRatingSummary } from "@/hooks/useRatings";
 import { ProductDTO } from "@hellena-sdk/hellena";
-import ProductStars from "../ui/product-stars";
+import ProductStars from "../../ui/product-stars";
 
 const dist: [number, number][] = [[5, 28], [4, 9], [3, 4], [2, 1], [1, 1]];
 

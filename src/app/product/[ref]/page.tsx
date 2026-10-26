@@ -2,15 +2,15 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import ProductRenderImages from "@/components/layouts/Product-render-image";
+import ProductRenderImages from "@/components/layouts/product/Product-render-image";
 import { ProductDTO } from "@hellena-sdk/hellena";
-import ProductInfo from "@/components/layouts/product-info";
-import ProductComments from "@/components/layouts/product-comment";
-import ProductRating from "@/components/layouts/product-rating";
+import ProductInfo from "@/components/layouts/product/product-info";
+import ProductComments from "@/components/layouts/product/product-comment";
+import ProductRating from "@/components/layouts/product/product-rating";
 import { Suspense } from "react";
 import { ProductSkeleton } from "@/components/skeleton/ProductSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProductRelated from "@/components/layouts/product-related";
+import ProductRelated from "@/components/layouts/product/product-related";
 import { useParams } from "next/navigation";
 import { useProductDetail } from "@/hooks/useProduct";
 

@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import type { ProductDTO } from "@hellena-sdk/hellena";
 import side from "@/assets/shoe-side.jpg";
 import top from "@/assets/shoe-top.jpg";
 import back from "@/assets/shoe-back.jpg";
 import black from "@/assets/shoe-black.jpg";
 
+// Mantido para componentes antigos da homepage; o carrinho usa exclusivamente o produto real adicionado via API.
 export type Product = { id: string; name: string; slug: string; brand: string; price: number; old?: number; img: string; category: string; color: string };
-
 export const products: Product[] = [
     { id: "zig-kinetica-3", name: "Zig Kinetica 3", slug: "zig-kinetica-3", brand: "Reebok", price: 199, img: side.src, category: "Running", color: "White" },
     { id: "bb550", name: "BB550", slug: "bb550", brand: "New Balance", price: 210, img: top.src, category: "Lifestyle", color: "White" },
@@ -27,10 +28,20 @@ export const money = (n: number | string) => {
     });
 };
 
-export type CartItem = { id: string; size: string; qty: number };
+export type CartProduct = {
+    id: string;
+    name: string;
+    brand: string;
+    price: number;
+    img: string;
+    category: string;
+    color: string;
+};
+
+export type CartItem = { id: string; size: string; color: string; qty: number; product: CartProduct };
 type Ctx = {
     items: CartItem[];
-    add: (id: string, size: string) => void;
+    add: (product: ProductDTO, size: string, color: string) => void;
     setQty: (i: number, qty: number) => void;
     remove: (i: number) => void;
     clear: () => void;
@@ -39,23 +50,69 @@ type Ctx = {
 };
 const CartCtx = createContext<Ctx | null>(null);
 
+function toCartProduct(product: ProductDTO): CartProduct {
+    const currentPrice = product.prices?.find((p) => p.priceType === "CURRENT")?.price;
+    const promotionalPrice = product.prices?.find((p) => p.priceType === "PROMOTIONAL")?.price;
+    const category = Array.isArray(product.category) ? product.category[0] : product.category;
+
+    return {
+        id: product.id,
+        name: product.name || "Produto Hellena",
+        brand: product.brand || "Geral",
+        price: Number(promotionalPrice ?? currentPrice ?? 0),
+        img: product.image || "https://media.wallmantra.com/product/original/product_placeholder.webp",
+        category: category || "Categoria",
+        color: Array.isArray(product.color) ? product.color.join(", ") : (product.color || "—"),
+    };
+}
+
+const STORAGE_KEY = "@hellena:cart";
+
 export function CartProvider({ children }: { children: ReactNode }) {
-    const [items, setItems] = useState<CartItem[]>([{ id: "zig-kinetica-3", size: "41", qty: 1 }, { id: "bb550", size: "42", qty: 1 }]);
-    const add = (id: string, size: string) =>
-        setItems((p) => {
-            const i = p.findIndex((x) => x.id === id && x.size === size);
-            if (i >= 0) return p.map((x, j) => (j === i ? { ...x, qty: x.qty + 1 } : x));
-            return [...p, { id, size, qty: 1 }];
+    // Inicializa o estado buscando do sessionStorage (se estiver rodando no client)
+    const [items, setItems] = useState<CartItem[]>(() => {
+        if (typeof window === "undefined") return [];
+        try {
+            const saved = sessionStorage.getItem(STORAGE_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error("Erro ao carregar o carrinho do sessionStorage", e);
+            return [];
+        }
+    });
+
+    // Salva no sessionStorage toda vez que os itens mudarem
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        } catch (e) {
+            console.error("Erro ao salvar o carrinho no sessionStorage", e);
+        }
+    }, [items]);
+
+    const add = (product: ProductDTO, size: string, color: string) => {
+        const cartProduct = toCartProduct(product);
+        setItems((previous) => {
+            const index = previous.findIndex((item) => item.id === product.id && item.size === size && item.color === color);
+            if (index >= 0) {
+                return previous.map((item, i) => i === index ? { ...item, qty: item.qty + 1, product: { ...cartProduct, color } } : item);
+            }
+            return [...previous, { id: product.id, size, color, qty: 1, product: { ...cartProduct, color } }];
         });
-    const setQty = (i: number, qty: number) => setItems((p) => p.map((x, j) => (j === i ? { ...x, qty: Math.max(1, qty) } : x)));
-    const remove = (i: number) => setItems((p) => p.filter((_, j) => j !== i));
-    const count = items.reduce((s, x) => s + x.qty, 0);
-    const subtotal = items.reduce((s, x) => s + x.qty * (products.find((p) => p.id === x.id)?.price ?? 0), 0);
-    return <CartCtx.Provider value={{ items, add, setQty, remove, clear: () => setItems([]), count, subtotal }}>{children}</CartCtx.Provider>;
+    };
+
+    const setQty = (i: number, qty: number) => setItems((previous) => previous.map((item, j) => j === i ? { ...item, qty: Math.max(1, qty) } : item));
+    const remove = (i: number) => setItems((previous) => previous.filter((_, j) => j !== i));
+    const clear = () => setItems([]);
+
+    const count = items.reduce((sum, item) => sum + item.qty, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.qty * item.product.price, 0);
+
+    return <CartCtx.Provider value={{ items, add, setQty, remove, clear, count, subtotal }}>{children}</CartCtx.Provider>;
 }
 
 export function useCart() {
-    const c = useContext(CartCtx);
-    if (!c) throw new Error("useCart outside CartProvider");
-    return c;
+    const context = useContext(CartCtx);
+    if (!context) throw new Error("useCart outside CartProvider");
+    return context;
 }

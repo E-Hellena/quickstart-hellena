@@ -5,7 +5,7 @@ import { Send } from "lucide-react";
 import { useProductComments, useCreateComment } from "@/hooks/useComments";
 import { ProductDTO } from "@hellena-sdk/hellena";
 import { useState } from "react";
-import { CommentsSkeleton } from "../skeleton/ProductSkeleton";
+import { CommentsSkeleton } from "../../skeleton/ProductSkeleton";
 
 export default function ProductComments({ product }: { product: ProductDTO }) {
     const { data: commentsList, isLoading } = useProductComments({ stockId: product.id, page: 1, limit: 10 });
@@ -16,18 +16,11 @@ export default function ProductComments({ product }: { product: ProductDTO }) {
         e.preventDefault();
         if (!newComment.trim()) return;
 
-        createCommentMutation.mutate(
-            {
-                stockId: product.id,
-                content: newComment,
-                customerName: "Cliente",
+        createCommentMutation.mutate({ stockId: product.id, content: newComment, customerName: "Cliente" }, {
+            onSuccess: () => {
+                setNewComment("");
             },
-            {
-                onSuccess: () => {
-                    setNewComment("");
-                },
-            }
-        );
+        });
     };
 
     if (isLoading) return <CommentsSkeleton />

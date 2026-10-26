@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { Minus, Plus, Trash2, Truck } from "lucide-react";
-import { money, products, useCart } from "@/lib/store";
-import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { money, useCart } from "@/lib/store";
 
 export function Summary({ children }: { children?: React.ReactNode }) {
     const { subtotal } = useCart();
@@ -40,58 +39,50 @@ export default function CartPage() {
             {items.length === 0 ? (
                 <div className="mt-10 rounded-lg bg-surface p-12 text-center">
                     <p className="text-sm text-muted-foreground">Your cart is empty.</p>
-                    <Link
-                        href="/search"
-                        className="mt-6 inline-block rounded-md bg-primary px-6 py-3 text-sm text-primary-foreground"
-                    >
+                    <Link href="/search" className="mt-6 inline-block rounded-md bg-primary px-6 py-3 text-sm text-primary-foreground">
                         Start shopping
                     </Link>
                 </div>
             ) : (
                 <div className="mt-10 grid gap-10 md:grid-cols-[1fr_340px]">
                     <div className="divide-y border-y">
-                        {items.map((it, i) => {
-                            const p = products.find((x) => x.id === it.id)!;
+                        {items.map((item, index) => {
+                            const product = item.product;
                             return (
-                                <div key={i} className="flex gap-5 py-6">
-                                    <img
-                                        src={p.img}
-                                        alt={p.name}
-                                        className="h-28 w-28 rounded-md bg-surface object-cover"
-                                    />
+                                <div key={`${item.id}-${item.size}-${item.color}`} className="flex gap-5 py-6">
+                                    <img src={product.img} alt={product.name} className="border h-28 w-28 rounded-md bg-surface object-cover" />
                                     <div className="flex flex-1 flex-col">
                                         <div className="flex justify-between">
                                             <div>
-                                                <p className="text-xs text-muted-foreground">{p.brand}</p>
-                                                <p className="font-medium">{p.name}</p>
+                                                <p className="text-xs text-muted-foreground">{product.brand}</p>
+                                                <p className="font-medium">{product.name}</p>
                                             </div>
-                                            <p className="font-semibold">{money(p.price * it.qty)}</p>
+                                            <p className="font-semibold">{money(product.price * item.qty)}</p>
                                         </div>
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            Size {it.size} · {p.color}
-                                        </p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            {item.size && (
+                                                <div className="h-5 px-1 flex border items-center justify-center rounded-sm">
+                                                    <p className="text-xs text-muted-foreground">{item.size}</p>
+                                                </div>
+                                            )}
+                                            {item.color && (
+                                                <div
+                                                    style={{ background: item.color }}
+                                                    className="h-5 w-6 px-2 py-1 rounded-sm border"
+                                                />
+                                            )}
+                                        </div>
                                         <div className="mt-auto flex items-center justify-between">
                                             <div className="flex items-center rounded-md border">
-                                                <button
-                                                    aria-label="Less"
-                                                    onClick={() => setQty(i, it.qty - 1)}
-                                                    className="px-3 py-1.5"
-                                                >
+                                                <button aria-label="Less" onClick={() => setQty(index, item.qty - 1)} className="px-3 py-1.5">
                                                     <Minus className="h-3 w-3" />
                                                 </button>
-                                                <span className="w-6 text-center text-sm">{it.qty}</span>
-                                                <button
-                                                    aria-label="More"
-                                                    onClick={() => setQty(i, it.qty + 1)}
-                                                    className="px-3 py-1.5"
-                                                >
+                                                <span className="w-6 text-center text-sm">{item.qty}</span>
+                                                <button aria-label="More" onClick={() => setQty(index, item.qty + 1)} className="px-3 py-1.5">
                                                     <Plus className="h-3 w-3" />
                                                 </button>
                                             </div>
-                                            <button
-                                                onClick={() => remove(i)}
-                                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-sale"
-                                            >
+                                            <button onClick={() => remove(index)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-sale">
                                                 <Trash2 className="h-3 w-3" />
                                                 Remove
                                             </button>
@@ -102,10 +93,7 @@ export default function CartPage() {
                         })}
                     </div>
                     <Summary>
-                        <Link
-                            href="/checkout"
-                            className="mt-6 block rounded-md bg-primary py-3 text-center text-sm text-primary-foreground"
-                        >
+                        <Link href="/checkout" className="mt-6 block rounded-md bg-primary py-3 text-center text-sm text-primary-foreground">
                             Checkout
                         </Link>
                         <p className="mt-4 flex items-center gap-2 text-xs">

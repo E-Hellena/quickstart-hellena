@@ -7,10 +7,10 @@ import { useProductRatingSummary } from "@/hooks/useRatings"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProductDTO } from "@hellena-sdk/hellena";
-import ProductStars from "../ui/product-stars";
-import { Skeleton } from "../ui/skeleton";
+import ProductStars from "../../ui/product-stars";
+import { Skeleton } from "../../ui/skeleton";
 
 export default function ProductInfo({ product }: { product: ProductDTO }) {
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -19,6 +19,16 @@ export default function ProductInfo({ product }: { product: ProductDTO }) {
 
     const { add } = useCart();
     const { data: ratingSummary, isLoading } = useProductRatingSummary(product.id);
+
+    // Seleciona automaticamente se houver apenas 1 cor ou 1 tamanho disponível
+    useEffect(() => {
+        if (product?.color?.length === 1) {
+            setSelectedColor(product.color[0]);
+        }
+        if (product?.size?.length === 1) {
+            setSize(product.size[0]);
+        }
+    }, [product]);
 
     const productName = product?.name || "Produto Hellena";
     const productBrand = product?.brand || "Geral";
@@ -114,10 +124,7 @@ export default function ProductInfo({ product }: { product: ProductDTO }) {
                                     key={c}
                                     size={"icon"}
                                     variant={"default"}
-                                    className={cn("px-3 py-1 text-xs border rounded-md", {
-                                        border: selectedColor === c,
-                                        "bg-surface": selectedColor !== c,
-                                    })}
+                                    className={cn("px-3 py-1 text-xs border-2 rounded-md", selectedColor == c ? "border-rating" : "border-black")}
                                     style={{ backgroundColor: c }}
                                     onClick={() => setSelectedColor(c)}
                                 />
@@ -149,8 +156,9 @@ export default function ProductInfo({ product }: { product: ProductDTO }) {
             {/* Ações do Carrinho */}
             <div className="mt-8 flex gap-3">
                 <button
-                    onClick={() => add(product?.id, size)}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:opacity-90"
+                    onClick={() => add(product, size, selectedColor ?? "")}
+                    disabled={Boolean(product?.color?.length && !selectedColor) || Boolean(product?.size?.length && !size)}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <ShoppingBag className="h-4 w-4" /> Adicionar ao carrinho
                 </button>
