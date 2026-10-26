@@ -38,7 +38,9 @@ export type CartProduct = {
     color: string;
 };
 
-export type CartItem = { id: string; size: string; color: string; qty: number; product: CartProduct };
+export type CartItem = {
+    id: string; size: string; color: string; qty: number; product: CartProduct
+};
 type Ctx = {
     items: CartItem[];
     add: (product: ProductDTO, size: string, color: string) => void;

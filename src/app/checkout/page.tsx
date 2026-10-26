@@ -45,6 +45,7 @@ export default function CheckoutPage() {
         const address = String(form.get("address") ?? "").trim();
         const postalCode = String(form.get("postalCode") ?? "").trim();
         const localization = [city, country].filter(Boolean).join(", ");
+        const notes = String(form.get("notes") ?? "").trim();
 
         try {
             const order = await createOrder.mutateAsync({
@@ -53,22 +54,27 @@ export default function CheckoutPage() {
                     customerName: [firstName, lastName].filter(Boolean).join(" "),
                     customerEmail: String(form.get("email") ?? "").trim(),
                     customerPhone: String(form.get("phone") ?? "").trim(),
-                    address: [address, city, postalCode, country].filter(Boolean).join(", "),
-                    notes: String(form.get("notes") ?? "").trim() || undefined,
+                    customerNIF: "000000000",
+                    notes: notes,
+                    lat: 0,
+                    lng: 0,
+                    address: [address, city, postalCode, country].filter(Boolean).join(", ")
                 },
                 items: items.map(({ product, qty, size, color }) => ({
                     productId: product.id,
                     name: product.name,
-                    quantity: qty,
-                    price: product.price,
-                    size,
-                    color: color || undefined,
                     category: product.category,
                     image: product.img,
+                    quantity: Number(qty),
+                    size: size ? String(size) : undefined,
+                    color: color,
+                    price: Number(product.price),
                 })),
+                coupon: "",
                 frete: method === "express" ? 15 : 0,
-                localization,
+                localization: localization,
             });
+
             if (order?.id) {
                 router.push(`/payment?orderId=${encodeURIComponent(order.id)}`);
             }
